@@ -1,0 +1,32 @@
+{
+  "total_cost": 498750.0,
+  "cost_breakdown": {
+    "hardware": 218250.0,
+    "civil": 191250.0,
+    "labor": 10500.0,
+    "ops": 8187.5
+  },
+  "quantities": {
+    "fiber_km": 13.125,
+    "splitters_1_32": 3,
+    "splitters_1_64": 0,
+    "olt_ports": 3,
+    "onts": 87,
+    "cabinets": 1
+  },
+  "roi": 83.89,
+  "payback_period_months": 14.3,
+  "feasible_premises": 87,
+  "budget_used": 500000.0,
+  "llm_explanation": "With a $500,000 budget, approximately 87 premises can be covered using PON in Urban area, 2 km from CO. Trade-offs include limiting initial coverage; expansion can follow in phases.",
+  "deployment_strategy": "Single phase: deploy feeder and distribution, single cabinet, then activate subscribers.",
+  "optimization_suggestions": [
+    "Consider higher split ratio to maximize premises within budget.",
+    "Reuse existing ducts to reduce civil cost and extend reach."
+  ],
+  "architecture_type": "PON",
+  "charts_data": {
+    "breakdown_labels": ["hardware", "civil", "labor", "ops"],
+    "breakdown_values": [218250.0, 191250.0, 10500.0, 8187.5]
+  }
+}

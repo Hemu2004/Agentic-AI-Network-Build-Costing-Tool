@@ -1,0 +1,31 @@
+{
+  "total_cost": 2847650.0,
+  "cost_breakdown": {
+    "hardware": 1248750.0,
+    "civil": 1095000.0,
+    "labor": 60000.0,
+    "ops": 46875.0
+  },
+  "quantities": {
+    "fiber_km": 75.0,
+    "splitters_1_32": 16,
+    "splitters_1_64": 0,
+    "olt_ports": 16,
+    "onts": 500,
+    "cabinets": 6
+  },
+  "roi": 8.43,
+  "payback_period_months": 142.2,
+  "llm_explanation": "This deployment covers 500 premises in an Urban area with PON (GPON) architecture, 2 km from the Central Office. Total cost is driven by fiber and civil works. ROI and payback are based on assumed ARPU.",
+  "deployment_strategy": "Phase feeder fiber first, then install splitters and distribution. Commission OLT and ONTs in stages.",
+  "optimization_suggestions": [
+    "Consider higher split ratio (e.g. 1:64) to reduce OLT ports.",
+    "Phase deployment to prioritize high-ARPU areas.",
+    "Use existing duct infrastructure where available to reduce civil cost."
+  ],
+  "architecture_type": "PON",
+  "charts_data": {
+    "breakdown_labels": ["hardware", "civil", "labor", "ops"],
+    "breakdown_values": [1248750.0, 1095000.0, 60000.0, 46875.0]
+  }
+}

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Signup</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Montserrat',sans-serif;
+}
+
+body{
+  background:#f6f5f7;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+}
+
+.container{
+  background:#fff;
+  width:850px;
+  height:500px;
+  display:flex;
+  border-radius:10px;
+  box-shadow:0 14px 28px rgba(0,0,0,0.25);
+  overflow:hidden;
+}
+
+/* LEFT PANEL */
+.overlay{
+  width:50%;
+  background:linear-gradient(to right, #ff416c, #ff4b2b);
+  color:#fff;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:40px;
+}
+
+.overlay button{
+  margin-top:20px;
+  padding:10px 40px;
+  border:1px solid #fff;
+  background:transparent;
+  color:#fff;
+  border-radius:20px;
+  cursor:pointer;
+}
+
+/* RIGHT FORM */
+.form-container{
+  width:50%;
+  padding:50px;
+  text-align:center;
+}
+
+input{
+  width:100%;
+  padding:10px;
+  margin:8px 0;
+  background:#eee;
+  border:none;
+}
+
+button.signup{
+  background:#063a78;
+  color:#fff;
+  border:none;
+  padding:10px 40px;
+  margin-top:10px;
+  border-radius:20px;
+  cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- LEFT -->
+  <div class="overlay">
+    <h2>Welcome Back!</h2>
+    <p>To keep connected with us please login</p>
+    <button onclick="window.location.href='login.html'">Sign In</button>
+  </div>
+
+  <!-- RIGHT -->
+  <div class="form-container">
+    <h2>Create Account</h2>
+
+    <form id="signup-form">
+      <input type="email" placeholder="Email" id="email">
+      <input type="password" placeholder="Password" id="password">
+      <input type="password" placeholder="Confirm Password" id="password2">
+      <button class="signup">Sign Up</button>
+    </form>
+
+    <p id="msg"></p>
+  </div>
+
+</div>
+
+<script>
+const form = document.getElementById("signup-form");
+const msg = document.getElementById("msg");
+
+form.addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  const email = document.getElementById("email").value;
+  const password = document.getElementById("password").value;
+  const password2 = document.getElementById("password2").value;
+
+  if(password !== password2){
+    msg.innerText = "Passwords do not match";
+    msg.style.color="red";
+    return;
+  }
+
+  try{
+    const res = await fetch('/api/auth/signup',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({email, password})
+    });
+
+    const data = await res.json();
+
+    if(!res.ok) throw new Error(data.detail || "Signup failed");
+
+    localStorage.setItem('fttp_user_id', data.user_id);
+    window.location.href = "/static/index.html";
+
+  }catch(err){
+    msg.innerText = err.message;
+    msg.style.color="red";
+  }
+});
+</script>
+
+</body>
+</html>

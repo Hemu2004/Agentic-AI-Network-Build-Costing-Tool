@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Global Network Cost Estimation</title>
+  <script>
+    (function () {
+      if (!localStorage.getItem('fttp_user_id')) {
+        window.location.replace('/static/login.html');
+      }
+    })();
+  </script>
+  <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="/static/js/maps.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>
+        <span>FTTP Estimator</span>
+      </div>
+      <nav class="sidebar-nav">
+        <a class="nav-item active" data-panel="ai-estimator"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a4 4 0 0 0-4 4v2H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V10a2 2 0 0 0-2-2h-2V6a4 4 0 0 0-4-4z"/></svg><span>AI Estimator</span></a>
+        <a class="nav-item" data-panel="maps-planner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg><span>Maps Planner</span></a>
+        <a class="nav-item" data-panel="projects"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg><span>Projects / History</span></a>
+      </nav>
+    </aside>
+
+    <main class="main">
+      <header class="main-header">
+        <h1 class="header-title">Global Network Cost Estimation</h1>
+        <div class="header-status">
+          <div class="header-auth" id="auth-bar">
+            <span class="auth-user" id="auth-user-wrap">
+              <span class="auth-user-badge" title="">
+                <span class="auth-user-avatar" id="auth-user-avatar" aria-hidden="true">?</span>
+                <span class="auth-user-email-text" id="auth-user-email"></span>
+              </span>
+              <button type="button" class="btn btn-secondary btn-sm" id="auth-logout" title="Sign out">Log out</button>
+            </span>
+          </div>
+          <span class="server-status" id="server-status" title="Backend server"><span class="status-dot"></span> Online</span>
+          <span class="ollama-status" id="ollama-status" title="Local AI (Ollama) - optional for explanations"></span>
+        </div>
+      </header>
+
+      <div class="summary-cards" id="summary-cards">
+        <div class="summary-card"><span class="summary-label">GLOBAL SPEND</span><span class="summary-value" id="card-spend">—</span></div>
+        <div class="summary-card"><span class="summary-label">SITES PLANNED</span><span class="summary-value" id="card-sites">—</span></div>
+        <div class="summary-card summary-card-ai"><span class="summary-label">AI SAVINGS</span><span class="summary-value" id="card-ai">—</span></div>
+      </div>
+
+      <div class="content">
+        <!-- AI ESTIMATOR PANEL -->
+        <section id="panel-ai-estimator" class="panel active">
+          <div class="sub-nav">
+            <button type="button" class="btn btn-primary" data-estimator-option="cost">Cost Estimation</button>
+            <button type="button" class="btn btn-secondary" data-estimator-option="budget">Budget-Based Planning</button>
+            <button type="button" class="btn btn-secondary" data-estimator-option="upgrade">Upgrade Planner</button>
+          </div>
+          <div class="two-col-layout">
+            <div class="left-panel card">
+              <div id="estimator-option-cost" class="estimator-option">
+                <div class="card-title">Cost Estimation</div>
+                <div class="form-group"><label>Area Name / Pincode</label><input type="text" id="cost-area" placeholder="e.g. Downtown Sector A"></div>
+                <div class="form-row">
+                  <div class="form-group"><label>Area Type</label><select id="cost-area-type"><option value="Urban">Urban</option><option value="Semi-Urban">Semi-Urban</option><option value="Rural">Rural</option></select></div>
+                  <div class="form-group"><label>Total Premises</label><input type="number" id="cost-premises" min="1" value="500"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Distance from CO (km)</label><input type="number" id="cost-distance" min="0" step="0.1" value="2"></div>
+                  <div class="form-group"><label>Architecture</label><select id="cost-arch"><option value="PON">PON (GPON)</option><option value="P2P">Point-to-Point</option><option value="PCP">PCP</option></select></div>
+                </div>
+              </div>
+              <div id="estimator-option-budget" class="estimator-option" style="display:none">
+                <div class="card-title">Budget-Based Planning</div>
+                <div class="form-group"><label>Available Budget</label><input type="number" id="budget-amount" min="1000" value="500000" placeholder="Enter in INR"></div>
+                <div class="form-row">
+                  <div class="form-group"><label>Area Type</label><select id="budget-area-type"><option value="Urban">Urban</option><option value="Semi-Urban">Semi-Urban</option><option value="Rural">Rural</option></select></div>
+                  <div class="form-group"><label>Distance from CO (km)</label><input type="number" id="budget-distance" min="0" step="0.1" value="2"></div>
+                  <div class="form-group"><label>Architecture</label><select id="budget-arch"><option value="PON">PON</option><option value="P2P">P2P</option><option value="PCP">PCP</option></select></div>
+                </div>
+              </div>
+              <div id="estimator-option-upgrade" class="estimator-option" style="display:none">
+                <div class="card-title">Upgrade Planner</div>
+                <div class="form-row">
+                  <div class="form-group"><label>Existing Type</label><select id="upgrade-existing"><option value="PON">PON</option><option value="P2P">P2P</option><option value="PCP">PCP</option></select></div>
+                  <div class="form-group"><label>Current Capacity</label><input type="number" id="upgrade-current" min="1" value="500"></div>
+                  <div class="form-group"><label>Target Capacity</label><input type="number" id="upgrade-target" min="1" value="2000"></div>
+                </div>
+                <div class="form-group"><label>Distance from CO (km)</label><input type="number" id="upgrade-distance" min="0" step="0.1" value="2"></div>
+              </div>
+              <details class="card" style="margin-top:12px">
+                <summary class="card-title" style="cursor:pointer">Cost Parameters (optional)</summary>
+                <div class="form-row" style="margin-top:12px">
+                  <div class="form-group"><label>Fiber per km</label><input type="number" id="cp-fiber_per_km" min="0" step="1" value="200" placeholder="default 200"></div>
+                  <div class="form-group"><label>Civil per km</label><input type="number" id="cp-civil_per_km" min="0" step="1" value="100" placeholder="default 100"></div>
+                  <div class="form-group"><label>Labor per premise</label><input type="number" id="cp-labor_per_premise" min="0" step="1" value="75" placeholder="default 75"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Splitter 1:32</label><input type="number" id="cp-splitter_1_32" min="0" step="1" value="120" placeholder="default 120"></div>
+                  <div class="form-group"><label>Splitter 1:64</label><input type="number" id="cp-splitter_1_64" min="0" step="1" value="120" placeholder="default 120"></div>
+                  <div class="form-group"><label>OLT port</label><input type="number" id="cp-olt_port" min="0" step="1" value="350" placeholder="default 350"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>ONT unit</label><input type="number" id="cp-ont_unit" min="0" step="1" value="35" placeholder="default 35"></div>
+                  <div class="form-group"><label>Cabinet</label><input type="number" id="cp-cabinet" min="0" step="1" value="120" placeholder="default 120"></div>
+                  <div class="form-group"><label>Maintenance % (year 1)</label><input type="number" id="cp-maintenance_year_pct" min="0" step="0.001" value="0.015" placeholder="default 0.015"></div>
+                </div>
+              </details>
+              <button type="button" class="btn btn-primary btn-block" id="btn-run-cost">Run Estimation</button>
+            </div>
+            <div class="right-panel">
+              <div id="estimator-result" class="result-panel card" style="display:none">
+                <div id="estimator-result-content"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- MAPS PLANNER: Location | Premises | Estimate -->
+        <section id="panel-maps-planner" class="panel">
+          <div class="maps-three-col">
+            <div class="maps-left card">
+              <div class="card-title">Input</div>
+              <div class="form-group"><label>Location</label><input type="text" id="maps-location" placeholder="e.g. Guntur, Andhra Pradesh"></div>
+              <div class="form-group"><label>Number of Premises</label><input type="number" id="maps-premises" min="1" value="51"></div>
+              <details class="card" style="margin-top:12px">
+                <summary class="card-title" style="cursor:pointer">Cost Parameters (optional)</summary>
+                <div class="form-row" style="margin-top:12px">
+                  <div class="form-group"><label>Fiber per km</label><input type="number" id="maps-cp-fiber_per_km" min="0" step="1" value="200"></div>
+                  <div class="form-group"><label>Civil per km</label><input type="number" id="maps-cp-civil_per_km" min="0" step="1" value="100"></div>
+                  <div class="form-group"><label>Labor per premise</label><input type="number" id="maps-cp-labor_per_premise" min="0" step="1" value="75"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>Splitter 1:32</label><input type="number" id="maps-cp-splitter_1_32" min="0" step="1" value="120"></div>
+                  <div class="form-group"><label>Splitter 1:64</label><input type="number" id="maps-cp-splitter_1_64" min="0" step="1" value="120"></div>
+                  <div class="form-group"><label>OLT port</label><input type="number" id="maps-cp-olt_port" min="0" step="1" value="350"></div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group"><label>ONT unit</label><input type="number" id="maps-cp-ont_unit" min="0" step="1" value="35"></div>
+                  <div class="form-group"><label>Cabinet</label><input type="number" id="maps-cp-cabinet" min="0" step="1" value="120"></div>
+                  <div class="form-group"><label>Maintenance % (year 1)</label><input type="number" id="maps-cp-maintenance_year_pct" min="0" step="0.001" value="0.015"></div>
+                </div>
+              </details>
+              <button type="button" class="btn btn-primary btn-block" id="btn-run-maps">Estimate</button>
+            </div>
+            <div class="maps-center">
+              <div id="map-container" class="map-container"></div>
+              <p class="map-hint" id="map-hint">Enter location and click Estimate to show on map.</p>
+            </div>
+            <div class="maps-right card">
+              <div id="maps-result" style="display:none">
+                <div class="maps-result-section"><span class="maps-label">Area Type</span><span class="maps-value" id="maps-area-type"></span></div>
+                <div class="maps-result-section"><span class="maps-label">Distance</span><span class="maps-value" id="maps-distance"></span></div>
+                <div class="maps-result-section"><span class="maps-label">Architecture</span><span class="maps-value" id="maps-architecture"></span></div>
+                <div class="maps-result-section total"><span class="maps-label">Total Cost</span><span class="maps-value" id="maps-total-cost"></span></div>
+                <div class="card-title">Cost Breakdown</div>
+                <ul class="maps-breakdown-list" id="maps-breakdown"></ul>
+                <div class="card-title">Optimized Cost Suggestions</div>
+                <ul class="suggestions-list" id="maps-optimizations"></ul>
+                <button type="button" class="btn btn-secondary" id="btn-save-maps">Save to Projects</button>
+              </div>
+              <div id="maps-placeholder" class="maps-placeholder">Run Estimate to see results.</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROJECTS / HISTORY -->
+        <section id="panel-projects" class="panel">
+          <div class="card">
+            <div class="card-title">Saved Estimations</div>
+            <div id="projects-list-container">
+              <div class="loading" id="projects-loading">Loading...</div>
+              <ul class="projects-list" id="projects-list"></ul>
+              <div class="empty-state" id="projects-empty" style="display:none">No saved projects yet.</div>
+            </div>
+          </div>
+          <div id="project-detail" class="card" style="display:none"><div class="card-title">Project Detail</div><div id="project-detail-content"></div></div>
+        </section>
+      </div>
+    </main>
+  </div>
+  <script src="/static/js/auth.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>
