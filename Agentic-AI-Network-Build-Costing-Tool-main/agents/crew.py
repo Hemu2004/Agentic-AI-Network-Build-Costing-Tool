@@ -21,7 +21,7 @@ def _call_llm(prompt: str, max_tokens: int = 1024, fallback: str = "") -> str:
     """Sync call to Ollama for explanation text. Returns fallback when Ollama is not available or model missing."""
     llm = get_llm()
     if llm is None:
-        return fallback or "Ollama is not running. Start it with: ollama serve. Then pull a model: ollama pull llama3.2"
+        return fallback or "Ollama is not running. Start it with: ollama serve. Then pull a model: ollama pull qwen2.5-coder:7b"
     try:
         out = llm.invoke(prompt[:8000])
         text = (out or "").strip()

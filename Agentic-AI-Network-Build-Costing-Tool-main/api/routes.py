@@ -112,7 +112,7 @@ async def api_ollama_status():
         "available": available,
         "message": "Ollama is running. AI explanations are enabled."
         if available
-        else f"Ollama is not running at {s.ollama_base_url}. Start with: ollama serve. Then: ollama pull {s.ollama_model}. Cost estimates still work.",
+        else f"Ollama is not running at {s.ollama_base_url}. Start with: ollama serve. Then: ollama pull qwen2.5-coder:7b. Cost estimates still work."
     }
 
 

@@ -23,7 +23,7 @@ def _check_ollama_available() -> bool:
             return False
         data = r.json()
         models = data.get("models") or []
-        want = (s.ollama_model or "llama3.2").strip()
+        want = (s.ollama_model or "qwen2.5-coder:7b").strip()
         # Match exact name or name with :tag (e.g. llama3.2:latest)
         has_model = any(
             m.get("name") == want or (m.get("name") or "").startswith(want + ":")
@@ -59,7 +59,7 @@ def get_llm():
                 num_predict=2048,
             )
         except Exception as e:
-            logger.warning("Failed to create Ollama client: %s", e)
+            logger.warning("Failed to create qwen2.5-coder:7b client: %s", e)
             return None
     return _ollama_llm
 
@@ -78,5 +78,5 @@ def get_chat_llm():
             num_predict=2048,
         )
     except Exception as e:
-        logger.warning("Failed to create ChatOllama: %s", e)
+        logger.warning("Failed to create qwen2.5-coder:7b ChatOllama: %s", e)
         return None
